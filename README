@@ -1,0 +1,62 @@
+ungit
+
+Copyright Korey Hinton
+License: GNU GPL v3, see COPYING file
+
+Make ungit usable from any directory by making it executable and putting it in
+your path.
+
+DISCLAIMER:
+
+This is a experimental project and data loss may occur given there is a bug or
+some other side effect. Also, make sure your first argument is a path that isn't
+contained within the actual repo itself as it would endlessly copy itself.
+
+WHAT IS THIS FOR:
+
+Sometimes it is preferrable to look at different repository versions using the
+filesystem rather than through source control. I found there wasn't an easy way
+to read the code from the initial commits from a particular project and be able
+to easily see when for instance actual code started being added. By copying out
+different versions they can exist in the filesystem at the same time and by
+removing the .git folders in the copied out folders it ensures that the space it
+takes up is minimal, especially if there are only a few files there in the
+initial commits.
+
+Despite it's name this is not intended to remove git from a project as that's an
+easy "rm -rf .git" command. This is intended to export versions of the original
+repository to folders that aren't under source control.
+
+
+USAGE:
+
+     ungit ../path_outside_repo_tree dir_name_to_create [n]
+
+From within a repository directory issue the ungit command and provide a
+desitination path that is outside of the repository's directory tree and the
+name of a new directory to be created that will house the copied repository
+that will not contains .git.
+
+     ungit ../ ungit-jquery
+
+The above command will copy the repository to ../ungit-jquery/1 since only 1
+repository version was exported.
+
+ADVANCED USAGE:
+
+You can also pipe from git log to produce several versions of said directory. Be
+careful though as every commit listed in the git log will be produced unless you
+specify otherwise
+
+    git log | ungit ../ ungit-react
+
+You can also only do n-amount of commits by providing an additional argument
+
+    # ungit 5 most recent commits
+    git log | ungit ../ ungit-angular 5
+
+Additionally you can filter the git log command directly to also specify which
+versions to produce.
+
+    # ungit the 5 oldest/initial commits
+    git log --reverse --all | ungit ../ ungit-vue

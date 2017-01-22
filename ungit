@@ -1,0 +1,104 @@
+#!/usr/bin/env python
+
+# Copyright Korey Hinton
+# License: GNU GPL v3, see COPYING file
+
+import sys
+import os
+import shutil
+import subprocess
+
+class Commit:
+    pass
+
+def get_pipe_data():
+    if (sys.stdin.isatty() == True):
+        return None
+    return sys.stdin.read()
+
+def get_argv():
+    argv = sys.argv[1:]
+    if len(argv) < 2 or len(argv) > 3:
+        print("Error. Invalid number of arguments provided.")
+        print("Usage: [...] -> optional")
+        print("  [ git log | ] ungit <path/to/dest> <new_dir_name>")
+        exit(1)
+    return argv
+
+def get_commits(git_log, n):
+    
+    commits = []
+    commit = None
+    commits = 0
+    line_in_commit = 0
+    to_return = []
+    
+    for line in git_log.splitlines():
+        if line.startswith("commit"):
+            
+            commit = Commit()
+            commits += 1
+            
+            commit.no = commits
+            commit.sha1 = line.split(' ')[1]
+            commit.text = line
+            
+            line_in_commit = 0
+            
+        else:
+            line_in_commit += 1
+            commit.text += line
+            if line_in_commit == 4:
+                if n == None:
+                    to_return.append(commit)
+                    
+                elif commit.no <= n:
+                    to_return.append(commit)
+                    
+        
+    return to_return
+            
+    
+
+def main():
+    pipe = get_pipe_data()
+    argv = get_argv()
+    dest_dir = argv[0]
+    dir_name = argv[1]
+    
+    n = None
+    if len(argv) == 3:
+        n = int(argv[2])
+        
+    commits = get_commits(pipe, n)
+    for commit in commits:
+        print(commit.no)
+
+    
+    if os.path.isdir(dest_dir) == False:
+        print("Error " + dest_dir + " is not a directory.")
+        exit(1)
+
+    if os.path.exists(dest_dir) == False:
+        print("Error " + dest_dir + " does not exist")
+        exit(1)
+
+    full_path = os.path.join(dest_dir, dir_name)
+    if os.path.exists(full_path):
+        print("Error, could not create directory " + full_path  + " since it already exists")
+        exit(1)
+
+    os.makedirs(full_path)
+    cwd = os.getcwd()
+    for commit in commits:
+        
+        dest = os.path.join(full_path, str(commit.no))
+        shutil.copytree(cwd, dest)
+        os.chdir(dest)
+        subprocess.call(["git","checkout",commit.sha1])
+        shutil.rmtree(".git")
+        os.chdir(cwd)
+    os.chdir(cwd)
+    
+if __name__ == '__main__':
+    main()
