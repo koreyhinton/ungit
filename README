@@ -59,4 +59,4 @@ Additionally you can filter the git log command directly to also specify which
 versions to produce.
 
     # ungit the 5 oldest/initial commits
-    git log --reverse --all | ungit ../ ungit-vue
+    git log --reverse --all | ungit ../ ungit-vue 5
